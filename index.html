@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HyperClay ZettelKasten</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .header {
+            margin-bottom: 2rem;
+        }
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        @media (min-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        .card {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 1rem;
+        }
+        .number-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            padding: 1rem;
+        }
+        .number-button {
+            padding: 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            background: #f3f4f6;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .number-button:hover {
+            background: #e5e7eb;
+        }
+        .number-button.selected {
+            background: #2563eb;
+            color: white;
+        }
+        .number {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .title {
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+            text-align: center;
+        }
+        .preview {
+            padding: 1rem;
+            background: #f9fafb;
+            border-radius: 0.5rem;
+        }
+        .preview h2 {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .preview p {
+            color: #4b5563;
+            margin-bottom: 1rem;
+        }
+        .preview a {
+            color: #2563eb;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            margin-top: 1rem;
+        }
+        .preview a:hover {
+            color: #1d4ed8;
+        }
+        .empty-preview {
+            text-align: center;
+            color: #6b7280;
+            padding: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>HyperClay ZettelKasten</h1>
+        </header>
+        <div class="grid">
+            <div class="card">
+                <div class="number-pad" id="numberPad">
+                    <button class="number-button" data-id="1">
+                        <span class="number">1</span>
+                        <span class="title">Design Thinking</span>
+                    </button>
+                    <button class="number-button" data-id="2">
+                        <span class="number">2</span>
+                        <span class="title">Force Sets</span>
+                    </button>
+                    <button class="number-button" data-id="3">
+                        <span class="number">3</span>
+                        <span class="title">Sound Systems</span>
+                    </button>
+                    <button class="number-button" data-id="6">
+                        <span class="number">6</span>
+                        <span class="title">Semiotics</span>
+                    </button>
+                    <button class="number-button" data-id="7">
+                        <span class="number">7</span>
+                        <span class="title">Media Studies</span>
+                    </button>
+                    <button class="number-button" data-id="hido">
+                        <span class="number">HI</span>
+                        <span class="title">HyperClay Interactive</span>
+                    </button>
+                    <button class="number-button" data-id="hycoso">
+                        <span class="number">HC</span>
+                        <span class="title">HyperClay Social</span>
+                    </button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="preview" id="preview">
+                    <div class="empty-preview">Select a number to preview content</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const content = {
+            '1': { 
+                title: 'Design Thinking',
+                preview: 'Canvas: Pivoting Observations into Design...',
+                link: '01.html'
+            },
+            '2': {
+                title: 'Force Sets',
+                preview: 'Dynamics in Craft and Design...',
+                link: '02.html'
+            },
+            '3': {
+                title: 'Sound Systems',
+                preview: 'Boundary Object Analysis...',
+                link: '03.html'
+            },
+            '6': {
+                title: 'Semiotics',
+                preview: 'Sign Systems...',
+                link: '06.html'
+            },
+            '7': {
+                title: 'Media Studies',
+                preview: 'Communication Patterns...',
+                link: '07.html'
+            },
+            'hido': {
+                title: 'HyperClay Interactive',
+                preview: 'Interactive Visualization...',
+                link: 'hido.html'
+            },
+            'hycoso': {
+                title: 'HyperClay Social',
+                preview: 'Social Network Analysis...',
+                link: 'hycoso.html'
+            }
+        };
+
+        let selectedButton = null;
+
+        function updatePreview(id) {
+            const preview = document.getElementById('preview');
+            const item = content[id];
+            
+            if (selectedButton) {
+                selectedButton.classList.remove('selected');
+            }
+            
+            const button = document.querySelector(`[data-id="${id}"]`);
+            button.classList.add('selected');
+            selectedButton = button;
+
+            preview.innerHTML = `
+                <h2>${item.title}</h2>
+                <p>${item.preview}</p>
+                <a href="${item.link}">
+                    Open full document →
+                </a>
+            `;
+        }
+
+        document.getElementById('numberPad').addEventListener('click', (e) => {
+            const button = e.target.closest('.number-button');
+            if (button) {
+                const id = button.dataset.id;
+                updatePreview(id);
+            }
+        });
+    </script>
+</body>
+</html>

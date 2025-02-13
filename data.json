@@ -1,0 +1,150 @@
+{
+  "icoso_structures": [
+    {
+      "icoso_structure": "Hair Braiding Practices & Cultural Dynamics",
+      "nodes": [
+        "Hair Braiding Techniques",
+        "Rat Tail Comb",
+        "Knotless Braids",
+        "Box Braids",
+        "Weaves",
+        "African Braiding Salon",
+        "Cultural Appropriation",
+        "Professional Standards",
+        "Unprofessional Practices",
+        "Fair Compensation",
+        "Time-Intensive Labor",
+        "Customer Satisfaction",
+        "Thinning Edges Through Tension",
+        "Hair Health Concerns",
+        "Hierarchy in Practice",
+        "Social Media Trends",
+        "Community Communication",
+        "Stylist Autonomy",
+        "Pricing Models",
+        "Innovation in Hairstyles"
+      ],
+      "edges": [
+        {"from": "Hair Braiding Techniques", "to": "Rat Tail Comb", "relationship": "utilizes"},
+        {"from": "Knotless Braids", "to": "Thinning Edges Through Tension", "relationship": "reduces"},
+        {"from": "Box Braids", "to": "Hair Health Concerns", "relationship": "can cause"},
+        {"from": "Weaves", "to": "Pricing Models", "relationship": "affects"},
+        {"from": "African Braiding Salon", "to": "Professional Standards", "relationship": "upholds"},
+        {"from": "Cultural Appropriation", "to": "Public Perception", "relationship": "influences"},
+        {"from": "Fair Compensation", "to": "Time-Intensive Labor", "relationship": "impacted by"},
+        {"from": "Customer Satisfaction", "to": "Hair Health Concerns", "relationship": "depends on"},
+        {"from": "Social Media Trends", "to": "Innovation in Hairstyles", "relationship": "drives"},
+        {"from": "Hierarchy in Practice", "to": "Stylist Autonomy", "relationship": "limits"},
+        {"from": "Unprofessional Practices", "to": "Customer Satisfaction", "relationship": "undermines"},
+        {"from": "Community Communication", "to": "Professional Standards", "relationship": "reinforces"},
+        {"from": "Pricing Models", "to": "Fair Compensation", "relationship": "determines"},
+        {"from": "Thinning Edges Through Tension", "to": "Hair Health Concerns", "relationship": "linked to"},
+        {"from": "Social Media Trends", "to": "Cultural Appropriation", "relationship": "accelerates"},
+        {"from": "Rat Tail Comb", "to": "Box Braids", "relationship": "used in"},
+        {"from": "Innovation in Hairstyles", "to": "Professional Standards", "relationship": "challenges"},
+        {"from": "Stylist Autonomy", "to": "Fair Compensation", "relationship": "affected by"},
+        {"from": "African Braiding Salon", "to": "Community Communication", "relationship": "hosts"},
+        {"from": "Cultural Appropriation", "to": "Social Media Trends", "relationship": "exacerbated by"}
+      ],
+      "clusters": [
+        {
+          "name": "Technical Skills",
+          "elements": ["Hair Braiding Techniques", "Rat Tail Comb", "Box Braids"]
+        },
+        {
+          "name": "Cultural Dynamics",
+          "elements": ["African Braiding Salon", "Cultural Appropriation", "Social Media Trends"]
+        },
+        {
+          "name": "Economic Factors",
+          "elements": ["Fair Compensation", "Pricing Models", "Time-Intensive Labor"]
+        },
+        {
+          "name": "Hair Health Concerns",
+          "elements": ["Thinning Edges Through Tension", "Hair Health Concerns", "Knotless Braids"]
+        },
+        {
+          "name": "Professional Standards",
+          "elements": ["Professional Standards", "Unprofessional Practices", "Innovation in Hairstyles"]
+        },
+        {
+          "name": "Community Engagement",
+          "elements": ["Community Communication", "Stylist Autonomy", "Hierarchy in Practice"]
+        }
+      ]
+    },
+    {
+      "icoso_structure": "Game Dynamics & Player Experiences",
+      "nodes": [
+        "Game Mechanics",
+        "Grid-Based Strategy",
+        "Avatar Representation",
+        "Mechs and Vehicles",
+        "Battle Mech Record Sheets",
+        "Mathematical Challenges",
+        "Inebriation During Play",
+        "Escapism",
+        "Narrative Construction",
+        "Player Identity",
+        "Strategic Decision-Making",
+        "Complexity in Gameplay",
+        "Game Duration Perception",
+        "Feedback Loops in Game Design",
+        "Ownership Markers (Spray-Painted Figures)",
+        "Emotional Engagement (Joy, Frustration)",
+        "Player Autonomy",
+        "Systemic Balance in Games",
+        "Social Interaction in Multiplayer Settings",
+        "Ritualistic Play Practices"
+      ],
+      "edges": [
+        {"from": "Game Mechanics", "to": "Grid-Based Strategy", "relationship": "define"},
+        {"from": "Avatar Representation", "to": "Player Identity", "relationship": "shapes"},
+        {"from": "Mechs and Vehicles", "to": "Narrative Construction", "relationship": "enhance"},
+        {"from": "Battle Mech Record Sheets", "to": "Complexity in Gameplay", "relationship": "track"},
+        {"from": "Mathematical Challenges", "to": "Inebriation During Play", "relationship": "complicated by"},
+        {"from": "Escapism", "to": "Narrative Construction", "relationship": "emerges from"},
+        {"from": "Strategic Decision-Making", "to": "Game Mechanics", "relationship": "driven by"},
+        {"from": "Game Duration Perception", "to": "Complexity in Gameplay", "relationship": "affected by"},
+        {"from": "Ownership Markers (Spray-Painted Figures)", "to": "Player Autonomy", "relationship": "reinforce"},
+        {"from": "Feedback Loops in Game Design", "to": "Systemic Balance in Games", "relationship": "ensure"},
+        {"from": "Emotional Engagement (Joy, Frustration)", "to": "Escapism", "relationship": "fosters"},
+        {"from": "Social Interaction in Multiplayer Settings", "to": "Ritualistic Play Practices", "relationship": "encourages"},
+        {"from": "Inebriation During Play", "to": "Ritualistic Play Practices", "relationship": "integrates into"},
+        {"from": "Player Identity", "to": "Ownership Markers (Spray-Painted Figures)", "relationship": "expressed through"},
+        {"from": "Systemic Balance in Games", "to": "Strategic Decision-Making", "relationship": "supports"},
+        {"from": "Emotional Engagement (Joy, Frustration)", "to": "Game Duration Perception", "relationship": "modifies"},
+        {"from": "Narrative Construction", "to": "Game Mechanics", "relationship": "influences"},
+        {"from": "Player Autonomy", "to": "Strategic Decision-Making", "relationship": "enhances"},
+        {"from": "Complexity in Gameplay", "to": "Feedback Loops in Game Design", "relationship": "requires"},
+        {"from": "Social Interaction in Multiplayer Settings", "to": "Player Identity", "relationship": "shapes"}
+      ],
+      "clusters": [
+        {
+          "name": "Game Mechanics & Strategy",
+          "elements": ["Game Mechanics", "Grid-Based Strategy", "Strategic Decision-Making"]
+        },
+        {
+          "name": "Player Identity & Representation",
+          "elements": ["Avatar Representation", "Player Identity", "Ownership Markers (Spray-Painted Figures)"]
+        },
+        {
+          "name": "Narrative & Escapism",
+          "elements": ["Narrative Construction", "Escapism", "Emotional Engagement (Joy, Frustration)"]
+        },
+        {
+          "name": "Systemic Design",
+          "elements": ["Feedback Loops in Game Design", "Systemic Balance in Games", "Complexity in Gameplay"]
+        },
+        {
+          "name": "Temporal Dynamics",
+          "elements": ["Game Duration Perception", "Inebriation During Play", "Ritualistic Play Practices"]
+        },
+        {
+          "name": "Social Interaction",
+          "elements": ["Social Interaction in Multiplayer Settings", "Player Autonomy", "Ritualistic Play Practices"]
+        }
+      ]
+    }
+  ]
+}

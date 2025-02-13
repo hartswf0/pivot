@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Icoso Structures Visualization</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #f0f2f5;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    
+    .graph-container {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .node {
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .edge {
+      stroke: #999;
+      stroke-opacity: 0.6;
+    }
+    
+    .cluster {
+      opacity: 0.1;
+      rx: 15px;
+      transition: opacity 0.3s ease;
+    }
+    
+    .edge-label {
+      font-size: 0.8em;
+      fill: #666;
+    }
+    
+    .tooltip {
+      position: absolute;
+      padding: 8px 12px;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      border-radius: 4px;
+      pointer-events: none;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container"></div>
+  <div class="tooltip"></div>
+
+  <script>
+    const data = {
+      "icoso_structures": [
+        {
+          "icoso_structure": "Hair Braiding Practices & Cultural Dynamics",
+          "nodes": [
+            "Hair Braiding Techniques",
+            "Rat Tail Comb",
+            "Knotless Braids",
+            "Box Braids",
+            "Weaves",
+            "African Braiding Salon",
+            "Cultural Appropriation",
+            "Professional Standards",
+            "Unprofessional Practices",
+            "Fair Compensation",
+            "Time-Intensive Labor",
+            "Customer Satisfaction",
+            "Thinning Edges Through Tension",
+            "Hair Health Concerns",
+            "Hierarchy in Practice",
+            "Social Media Trends",
+            "Community Communication",
+            "Stylist Autonomy",
+            "Pricing Models",
+            "Innovation in Hairstyles"
+          ],
+          "edges": [
+            {"from": "Hair Braiding Techniques", "to": "Rat Tail Comb", "relationship": "utilizes"},
+            {"from": "Knotless Braids", "to": "Thinning Edges Through Tension", "relationship": "reduces"},
+            {"from": "Box Braids", "to": "Hair Health Concerns", "relationship": "can cause"},
+            {"from": "Weaves", "to": "Pricing Models", "relationship": "affects"},
+            {"from": "African Braiding Salon", "to": "Professional Standards", "relationship": "upholds"},
+            {"from": "Cultural Appropriation", "to": "Public Perception", "relationship": "influences"},
+            {"from": "Fair Compensation", "to": "Time-Intensive Labor", "relationship": "impacted by"},
+            {"from": "Customer Satisfaction", "to": "Hair Health Concerns", "relationship": "depends on"},
+            {"from": "Social Media Trends", "to": "Innovation in Hairstyles", "relationship": "drives"},
+            {"from": "Hierarchy in Practice", "to": "Stylist Autonomy", "relationship": "limits"},
+            {"from": "Unprofessional Practices", "to": "Customer Satisfaction", "relationship": "undermines"},
+            {"from": "Community Communication", "to": "Professional Standards", "relationship": "reinforces"},
+            {"from": "Pricing Models", "to": "Fair Compensation", "relationship": "determines"},
+            {"from": "Thinning Edges Through Tension", "to": "Hair Health Concerns", "relationship": "linked to"},
+            {"from": "Social Media Trends", "to": "Cultural Appropriation", "relationship": "accelerates"},
+            {"from": "Rat Tail Comb", "to": "Box Braids", "relationship": "used in"},
+            {"from": "Innovation in Hairstyles", "to": "Professional Standards", "relationship": "challenges"},
+            {"from": "Stylist Autonomy", "to": "Fair Compensation", "relationship": "affected by"},
+            {"from": "African Braiding Salon", "to": "Community Communication", "relationship": "hosts"},
+            {"from": "Cultural Appropriation", "to": "Social Media Trends", "relationship": "exacerbated by"}
+          ],
+          "clusters": [
+            {
+              "name": "Technical Skills",
+              "elements": ["Hair Braiding Techniques", "Rat Tail Comb", "Box Braids"]
+            },
+            {
+              "name": "Cultural Dynamics",
+              "elements": ["African Braiding Salon", "Cultural Appropriation", "Social Media Trends"]
+            },
+            {
+              "name": "Economic Factors",
+              "elements": ["Fair Compensation", "Pricing Models", "Time-Intensive Labor"]
+            },
+            {
+              "name": "Hair Health Concerns",
+              "elements": ["Thinning Edges Through Tension", "Hair Health Concerns", "Knotless Braids"]
+            },
+            {
+              "name": "Professional Standards",
+              "elements": ["Professional Standards", "Unprofessional Practices", "Innovation in Hairstyles"]
+            },
+            {
+              "name": "Community Engagement",
+              "elements": ["Community Communication", "Stylist Autonomy", "Hierarchy in Practice"]
+            }
+          ]
+        },
+        {
+          "icoso_structure": "Game Dynamics & Player Experiences",
+          "nodes": [
+            "Game Mechanics",
+            "Grid-Based Strategy",
+            "Avatar Representation",
+            "Mechs and Vehicles",
+            "Battle Mech Record Sheets",
+            "Mathematical Challenges",
+            "Inebriation During Play",
+            "Escapism",
+            "Narrative Construction",
+            "Player Identity",
+            "Strategic Decision-Making",
+            "Complexity in Gameplay",
+            "Game Duration Perception",
+            "Feedback Loops in Game Design",
+            "Ownership Markers (Spray-Painted Figures)",
+            "Emotional Engagement (Joy, Frustration)",
+            "Player Autonomy",
+            "Systemic Balance in Games",
+            "Social Interaction in Multiplayer Settings",
+            "Ritualistic Play Practices"
+          ],
+          "edges": [
+            {"from": "Game Mechanics", "to": "Grid-Based Strategy", "relationship": "define"},
+            {"from": "Avatar Representation", "to": "Player Identity", "relationship": "shapes"},
+            {"from": "Mechs and Vehicles", "to": "Narrative Construction", "relationship": "enhance"},
+            {"from": "Battle Mech Record Sheets", "to": "Complexity in Gameplay", "relationship": "track"},
+            {"from": "Mathematical Challenges", "to": "Inebriation During Play", "relationship": "complicated by"},
+            {"from": "Escapism", "to": "Narrative Construction", "relationship": "emerges from"},
+            {"from": "Strategic Decision-Making", "to": "Game Mechanics", "relationship": "driven by"},
+            {"from": "Game Duration Perception", "to": "Complexity in Gameplay", "relationship": "affected by"},
+            {"from": "Ownership Markers (Spray-Painted Figures)", "to": "Player Autonomy", "relationship": "reinforce"},
+            {"from": "Feedback Loops in Game Design", "to": "Systemic Balance in Games", "relationship": "ensure"},
+            {"from": "Emotional Engagement (Joy, Frustration)", "to": "Escapism", "relationship": "fosters"},
+            {"from": "Social Interaction in Multiplayer Settings", "to": "Ritualistic Play Practices", "relationship": "encourages"},
+            {"from": "Inebriation During Play", "to": "Ritualistic Play Practices", "relationship": "integrates into"},
+            {"from": "Player Identity", "to": "Ownership Markers (Spray-Painted Figures)", "relationship": "expressed through"},
+            {"from": "Systemic Balance in Games", "to": "Strategic Decision-Making", "relationship": "supports"},
+            {"from": "Emotional Engagement (Joy, Frustration)", "to": "Game Duration Perception", "relationship": "modifies"},
+            {"from": "Narrative Construction", "to": "Game Mechanics", "relationship": "influences"},
+            {"from": "Player Autonomy", "to": "Strategic Decision-Making", "relationship": "enhances"},
+            {"from": "Complexity in Gameplay", "to": "Feedback Loops in Game Design", "relationship": "requires"},
+            {"from": "Social Interaction in Multiplayer Settings", "to": "Player Identity", "relationship": "shapes"}
+          ],
+          "clusters": [
+            {
+              "name": "Game Mechanics & Strategy",
+              "elements": ["Game Mechanics", "Grid-Based Strategy", "Strategic Decision-Making"]
+            },
+            {
+              "name": "Player Identity & Representation",
+              "elements": ["Avatar Representation", "Player Identity", "Ownership Markers (Spray-Painted Figures)"]
+            },
+            {
+              "name": "Narrative & Escapism",
+              "elements": ["Narrative Construction", "Escapism", "Emotional Engagement (Joy, Frustration)"]
+            },
+            {
+              "name": "Systemic Design",
+              "elements": ["Feedback Loops in Game Design", "Systemic Balance in Games", "Complexity in Gameplay"]
+            },
+            {
+              "name": "Temporal Dynamics",
+              "elements": ["Game Duration Perception", "Inebriation During Play", "Ritualistic Play Practices"]
+            },
+            {
+              "name": "Social Interaction",
+              "elements": ["Social Interaction in Multiplayer Settings", "Player Autonomy", "Ritualistic Play Practices"]
+            }
+          ]
+        }
+      ]
+    };
+
+    const container = d3.select('.container');
+    const tooltip = d3.select('.tooltip');
+
+    data.icoso_structures.forEach((structure, index) => {
+      const width = 800;
+      const height = 600;
+
+      const svg = container.append('div')
+        .classed('graph-container', true)
+        .append('svg')
+        .attr('width', width)
+        .attr('height', height);
+
+      // Initialize simulation
+      const simulation = d3.forceSimulation()
+        .force('link', d3.forceLink().id(d => d.id).distance(100))
+        .force('charge', d3.forceManyBody().strength(-200))
+        .force('center', d3.forceCenter(width / 2, height / 2))
+        .force('collision', d3.forceCollide().radius(40));
+
+      // Create nodes and links
+      const nodes = structure.nodes.map(d => ({ id: d }));
+      const links = structure.edges.map(d => ({
+        source: d.from,
+        target: d.to,
+        relationship: d.relationship
+      }));
+
+      // Draw clusters
+      const clusters = svg.selectAll('.cluster')
+        .data(structure.clusters)
+        .enter().append('g');
+
+      clusters.append('rect')
+        .classed('cluster', true)
+        .attr('fill', (d, i) => d3.schemeCategory10[i % 10])
+        .attr('x', d => {
+          const clusterNodes = d.elements.map(e => nodes.find(n => n.id === e));
+          // Fallback if positions aren't yet computed
+          return d3.mean(clusterNodes, n => n.x || width / 2) - 100;
+        })
+        .attr('y', d => {
+          const clusterNodes = d.elements.map(e => nodes.find(n => n.id === e));
+          return d3.mean(clusterNodes, n => n.y || height / 2) - 60;
+        })
+        .attr('width', 200)
+        .attr('height', 120);
+
+      clusters.append('text')
+        .attr('x', d => {
+          const clusterNodes = d.elements.map(e => nodes.find(n => n.id === e));
+          return d3.mean(clusterNodes, n => n.x || width / 2);
+        })
+        .attr('y', d => {
+          const clusterNodes = d.elements.map(e => nodes.find(n => n.id === e));
+          return d3.mean(clusterNodes, n => n.y || height / 2) - 70;
+        })
+        .text(d => d.name)
+        .style('font-weight', '600')
+        .style('fill', (d, i) => d3.schemeCategory10[i % 10]);
+
+      // Draw edges
+      const edge = svg.selectAll('.edge')
+        .data(links)
+        .enter().append('path')
+        .classed('edge', true)
+        .attr('marker-end', 'url(#arrowhead)');
+
+      // Edge labels
+      svg.selectAll('.edge-label')
+        .data(links)
+        .enter().append('text')
+        .classed('edge-label', true)
+        .append('textPath')
+        .attr('xlink:href', (d, i) => `#edge${i}`)
+        .attr('startOffset', '50%')
+        .text(d => d.relationship)
+        .style('text-anchor', 'middle');
+
+      // Draw nodes
+      const node = svg.selectAll('.node')
+        .data(nodes)
+        .enter().append('g')
+        .classed('node', true)
+        .call(d3.drag()
+          .on('start', dragstarted)
+          .on('drag', dragged)
+          .on('end', dragended));
+
+      node.append('circle')
+        .attr('r', 20)
+        .attr('fill', (d, i) => {
+          // Find the cluster index for this node
+          const clusterIndex = structure.clusters.findIndex(c => c.elements.includes(d.id));
+          return d3.schemeCategory10[clusterIndex % 10];
+        });
+
+      node.append('text')
+        .text(d => d.id)
+        .attr('text-anchor', 'middle')
+        .attr('dy', 5)
+        .style('font-size', '0.8em')
+        .style('pointer-events', 'none');
+
+      // Add arrowhead marker
+      svg.append('defs').append('marker')
+        .attr('id', 'arrowhead')
+        .attr('viewBox', '-0 -5 10 10')
+        .attr('refX', 25)
+        .attr('refY', 0)
+        .attr('orient', 'auto')
+        .attr('markerWidth', 10)
+        .attr('markerHeight', 10)
+        .append('path')
+        .attr('d', 'M0,-5 L10,0 L0,5')
+        .attr('fill', '#999');
+
+      simulation.nodes(nodes).on('tick', ticked);
+      simulation.force('link').links(links);
+
+      function ticked() {
+        edge.attr('d', d => {
+          const dx = d.target.x - d.source.x,
+                dy = d.target.y - d.source.y,
+                dr = Math.sqrt(dx * dx + dy * dy);
+          return `M${d.source.x},${d.source.y}A${dr},${dr} 0 0,1 ${d.target.x},${d.target.y}`;
+        });
+
+        node.attr('transform', d => `translate(${d.x},${d.y})`);
+      }
+
+      function dragstarted(event) {
+        if (!event.active) simulation.alphaTarget(0.3).restart();
+        event.subject.fx = event.subject.x;
+        event.subject.fy = event.subject.y;
+      }
+
+      function dragged(event) {
+        event.subject.fx = event.x;
+        event.subject.fy = event.y;
+      }
+
+      function dragended(event) {
+        if (!event.active) simulation.alphaTarget(0);
+        event.subject.fx = null;
+        event.subject.fy = null;
+      }
+
+      // Add interactions
+      node.on('mouseover', (event, d) => {
+        tooltip
+          .html(`<strong>${d.id}</strong>`)
+          .style('left', `${event.pageX + 10}px`)
+          .style('top', `${event.pageY + 10}px`)
+          .style('opacity', 1);
+
+        edge.style('stroke-opacity', l =>
+          l.source === d || l.target === d ? 1 : 0.1);
+      });
+
+      node.on('mouseout', () => {
+        tooltip.style('opacity', 0);
+        edge.style('stroke-opacity', 0.6);
+      });
+    });
+  </script>
+</body>
+</html>

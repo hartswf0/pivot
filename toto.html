@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IcoSo Structures Visualization</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" />
+  <style>
+    :root {
+      --color-background: #f7f7f7;
+      --color-primary: #1C1C1C;
+      --color-secondary: #4E4E4E;
+      --color-accent: #007BFF;
+    }
+    
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: var(--color-background);
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    
+    .structure-selector {
+      margin-bottom: 20px;
+      padding: 10px;
+      background: #e0e0e0;
+      border-radius: 4px;
+    }
+    
+    /* Draggable person icon styles */
+    #draggableContainer {
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+    }
+    .draggable-person {
+      width: 50px;
+      height: 50px;
+      cursor: grab;
+      display: inline-block;
+      margin-right: 10px;
+    }
+    .draggable-person img {
+      width: 100%;
+      height: 100%;
+    }
+    
+    .visualization {
+      height: 600px;
+      border: 1px solid #ddd;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    
+    .cluster-legend {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      margin-top: 20px;
+      padding: 10px;
+      background: #f5f5f5;
+      border-radius: 4px;
+    }
+    
+    .cluster-item {
+      padding: 5px;
+      background: white;
+      display: flex;
+      align-items: center;
+    }
+    
+    .cluster-color {
+      width: 16px;
+      height: 16px;
+      margin-right: 8px;
+      border: 1px solid #ccc;
+    }
+    
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      margin-top: 20px;
+    }
+    
+    .stat-box {
+      background: var(--color-primary);
+      color: white;
+      padding: 15px;
+      border-radius: 4px;
+      text-align: center;
+    }
+    
+    /* Narrative log styles */
+    #narrativeLog {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      height: 200px;
+      overflow-y: auto;
+      background: #fff;
+    }
+    #narrativeLog h4 {
+      margin-top: 0;
+    }
+    .narrative-entry {
+      margin-bottom: 10px;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Structure selection -->
+    <div class="structure-selector">
+      <select id="structureSelect" onchange="loadStructure()">
+        <option value="0">Hair Braiding Practices & Cultural Dynamics</option>
+        <option value="1">Game Dynamics & Player Experiences</option>
+      </select>
+    </div>
+    
+    <!-- Draggable person icon -->
+    <div id="draggableContainer">
+      <div id="personIcon" class="draggable-person" draggable="true">
+        <img src="https://img.icons8.com/ios-filled/50/000000/user.png" alt="Drag me">
+      </div>
+      <div>Drag this practitioner icon into the web of compelling concerns</div>
+    </div>
+    
+    <!-- Network visualization container -->
+    <div id="visualization" class="visualization"></div>
+    
+    <!-- Cluster legend -->
+    <div id="clusterLegend" class="cluster-legend"></div>
+    
+    <!-- Stats display -->
+    <div class="stats">
+      <div class="stat-box">
+        <h4>Nodes</h4>
+        <div id="nodeCount">0</div>
+      </div>
+      <div class="stat-box">
+        <h4>Connections</h4>
+        <div id="edgeCount">0</div>
+      </div>
+      <div class="stat-box">
+        <h4>Clusters</h4>
+        <div id="clusterCount">0</div>
+      </div>
+    </div>
+    
+    <!-- Narrative Log -->
+    <div id="narrativeLog">
+      <h4>Narrative Log</h4>
+    </div>
+  </div>
+  
+  <script>
+    // Global variables for network, nodes, edges, and current structure index
+    let network = null;
+    let nodes = null;
+    let edges = null;
+    let currentStructureIndex = 0;
+    
+    // Narrative mappings for Hair Braiding
+    const hairBraidingNarratives = {
+      "Hair Braiding Techniques": "I cherish the intricate techniques of hair braiding, where every twist tells a story of heritage and artistry.",
+      "Rat Tail Comb": "I trust the precision of my rat tail comb, a simple tool that guides my creative process.",
+      "Knotless Braids": "I embrace knotless braids as a symbol of gentle care and modern style.",
+      "Box Braids": "I celebrate the bold spirit of box braids, merging tradition with contemporary flair.",
+      "Weaves": "I experiment with weaves, blending textures and colors to reinvent beauty.",
+      "African Braiding Salon": "I am proud to work in an African braiding salon, where culture and creativity converge.",
+      "Cultural Appropriation": "I remain mindful of cultural appropriation, ensuring that every style respects its origins.",
+      "Professional Standards": "I uphold professional standards, valuing skill and integrity in every braid.",
+      "Unprofessional Practices": "I reflect on unprofessional practices, learning from mistakes to elevate my craft.",
+      "Fair Compensation": "I stand for fair compensation, believing that true art deserves proper reward.",
+      "Time-Intensive Labor": "I invest in time-intensive labor, knowing that dedication is the backbone of excellence.",
+      "Customer Satisfaction": "I strive for customer satisfaction, understanding that trust is built on care and consistency.",
+      "Thinning Edges Through Tension": "I am wary of thinning edges through tension, aware that subtlety is key to healthy hair.",
+      "Hair Health Concerns": "I prioritize hair health, ensuring that beauty and well-being go hand in hand.",
+      "Hierarchy in Practice": "I navigate hierarchy in practice, balancing tradition with modern collaboration.",
+      "Social Media Trends": "I observe social media trends, letting them inspire but not dictate my artistry.",
+      "Community Communication": "I foster community communication, believing in the power of shared experiences.",
+      "Stylist Autonomy": "I value stylist autonomy, trusting my instincts to create authentic styles.",
+      "Pricing Models": "I experiment with pricing models, striving for a fair balance between artistry and business.",
+      "Innovation in Hairstyles": "I push for innovation in hairstyles, always daring to reimagine what beauty can be."
+    };
+    
+    // Narrative mappings for Game Dynamics
+    const gameDynamicsNarratives = {
+      "Game Mechanics": "I delve into game mechanics, where every rule fuels a dynamic experience.",
+      "Grid-Based Strategy": "I revel in grid-based strategy, navigating challenges with calculated moves.",
+      "Avatar Representation": "I express my identity through avatar representation, merging self with digital art.",
+      "Mechs and Vehicles": "I command mechs and vehicles, embodying strength and strategy in virtual realms.",
+      "Battle Mech Record Sheets": "I document my conquests on battle mech record sheets, a testament to my tactical prowess.",
+      "Mathematical Challenges": "I relish mathematical challenges, where logic meets creativity in gameplay.",
+      "Inebriation During Play": "I sometimes find myself inebriated during play, embracing the chaos as part of the fun.",
+      "Escapism": "I seek escapism in games, a welcome retreat from the constraints of reality.",
+      "Narrative Construction": "I construct narratives that transform gameplay into a rich tapestry of stories.",
+      "Player Identity": "I define my player identity, where every decision is a stroke of self-expression.",
+      "Strategic Decision-Making": "I rely on strategic decision-making, knowing that every move shapes the game's outcome.",
+      "Complexity in Gameplay": "I navigate the complexity in gameplay, where layers of challenge keep me engaged.",
+      "Game Duration Perception": "I perceive game duration in my own time, each moment as valuable as the next.",
+      "Feedback Loops in Game Design": "I appreciate feedback loops in game design, where continuous improvement fuels innovation.",
+      "Ownership Markers (Spray-Painted Figures)": "I mark my territory with ownership markers, a vibrant sign of belonging.",
+      "Emotional Engagement (Joy, Frustration)": "I experience emotional engagement, where joy and frustration intertwine to deepen my connection.",
+      "Player Autonomy": "I assert my player autonomy, carving my own path in every digital challenge.",
+      "Systemic Balance in Games": "I strive for systemic balance in games, ensuring fairness and fun go hand in hand.",
+      "Social Interaction in Multiplayer Settings": "I cherish social interaction in multiplayer settings, where every encounter enriches the experience.",
+      "Ritualistic Play Practices": "I engage in ritualistic play practices, honoring traditions that elevate the gaming experience."
+    };
+    
+    // Function to get the narrative for a node based on its label and current structure
+    function getNarrativeForNode(nodeLabel) {
+      if (parseInt(currentStructureIndex) === 0) {
+        return hairBraidingNarratives[nodeLabel] || "I feel a profound connection with this aspect of my craft.";
+      } else if (parseInt(currentStructureIndex) === 1) {
+        return gameDynamicsNarratives[nodeLabel] || "This element speaks to the dynamic world of play that I inhabit.";
+      }
+      return "I experience a deep resonance with this compelling concern.";
+    }
+    
+    // Append a narrative entry to the Narrative Log
+    function logNarrative(message) {
+      const logContainer = document.getElementById('narrativeLog');
+      const entry = document.createElement('div');
+      entry.className = 'narrative-entry';
+      entry.textContent = message;
+      logContainer.appendChild(entry);
+      // Auto-scroll to the bottom
+      logContainer.scrollTop = logContainer.scrollHeight;
+    }
+    
+    // Load the selected structure and create the network
+    function loadStructure() {
+      const index = document.getElementById('structureSelect').value;
+      currentStructureIndex = index; // store current structure
+      const structure = structures.icoso_structures[index];
+      
+      // Create nodes dataset and store them globally
+      nodes = new vis.DataSet(
+        structure.nodes.map((node, id) => ({
+          id,
+          label: node,
+          group: findClusterForNode(node, structure.clusters)
+        }))
+      );
+      
+      // Create edges dataset
+      edges = new vis.DataSet(
+        structure.edges.map((edge, id) => ({
+          id,
+          from: structure.nodes.indexOf(edge.from),
+          to: structure.nodes.indexOf(edge.to),
+          label: edge.relationship
+        }))
+      );
+      
+      // Network configuration
+      const options = {
+        nodes: {
+          shape: 'dot',
+          size: 20,
+          font: { size: 14 }
+        },
+        edges: {
+          font: { size: 12, align: 'middle' },
+          arrows: 'to'
+        },
+        physics: {
+          barnesHut: {
+            gravitationalConstant: -2000,
+            springLength: 200
+          }
+        },
+        groups: createClusterColors(structure.clusters)
+      };
+      
+      // Create the network inside the "visualization" container
+      const container = document.getElementById('visualization');
+      network = new vis.Network(container, { nodes, edges }, options);
+      
+      // Update statistics
+      document.getElementById('nodeCount').textContent = nodes.length;
+      document.getElementById('edgeCount').textContent = edges.length;
+      document.getElementById('clusterCount').textContent = structure.clusters.length;
+      
+      // Update cluster legend with color swatches
+      updateClusterLegend(structure.clusters);
+    }
+    
+    // Return the cluster name for a given node
+    function findClusterForNode(node, clusters) {
+      for (const cluster of clusters) {
+        if (cluster.elements.includes(node)) {
+          return cluster.name;
+        }
+      }
+      return null;
+    }
+    
+    // Assign colors to clusters and return a groups object for vis.js
+    function createClusterColors(clusters) {
+      const colors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33'];
+      const groups = {};
+      clusters.forEach((cluster, i) => {
+        groups[cluster.name] = {
+          color: { background: colors[i % colors.length] }
+        };
+      });
+      return groups;
+    }
+    
+    // Update the legend with color swatches
+    function updateClusterLegend(clusters) {
+      const colors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33'];
+      const legend = document.getElementById('clusterLegend');
+      legend.innerHTML = clusters
+        .map((cluster, index) => `
+          <div class="cluster-item">
+            <span class="cluster-color" style="background: ${colors[index % colors.length]};"></span>
+            <div>
+              <strong>${cluster.name}</strong><br/>
+              <small>${cluster.elements.length} elements</small>
+            </div>
+          </div>
+        `)
+        .join('');
+    }
+    
+    // ---------- DRAG & DROP PRACTITIONER (Place Practitioner) FEATURE ----------
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      loadStructure();
+      
+      const vizContainer = document.getElementById('visualization');
+      
+      // Allow drop on the visualization container
+      vizContainer.addEventListener('dragover', (event) => {
+        event.preventDefault();
+      });
+      
+      // Handle drop event: place a practitioner in the web of compelling concerns
+      vizContainer.addEventListener('drop', (event) => {
+        event.preventDefault();
+        const rect = vizContainer.getBoundingClientRect();
+        const dropX = event.clientX - rect.left;
+        const dropY = event.clientY - rect.top;
+        
+        // Convert DOM coordinates to network (canvas) coordinates
+        const canvasPos = network.DOMtoCanvas({ x: dropX, y: dropY });
+        
+        // Find nearby nodes (within a threshold) to tether to.
+        const positions = network.getPositions();
+        const threshold = 150;
+        let candidates = [];
+        for (let nodeId in positions) {
+          const pos = positions[nodeId];
+          const dx = canvasPos.x - pos.x;
+          const dy = canvasPos.y - pos.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if(distance <= threshold) {
+            candidates.push({ id: nodeId, distance });
+          }
+        }
+        candidates.sort((a, b) => a.distance - b.distance);
+        let tetherNodes = candidates.slice(0, 5);
+        if(tetherNodes.length === 0) {
+          // If no nodes are within the threshold, attach to the nearest node.
+          let allCandidates = [];
+          for (let nodeId in positions) {
+            const pos = positions[nodeId];
+            const dx = canvasPos.x - pos.x;
+            const dy = canvasPos.y - pos.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            allCandidates.push({ id: nodeId, distance });
+          }
+          allCandidates.sort((a, b) => a.distance - b.distance);
+          tetherNodes = [allCandidates[0]];
+        }
+        
+        // Create a new practitioner node at the drop location.
+        const newNodeId = 'person_' + Date.now();
+        nodes.add({
+          id: newNodeId,
+          label: '',
+          x: canvasPos.x,
+          y: canvasPos.y,
+          shape: 'circularImage',
+          image: 'https://img.icons8.com/ios-filled/50/000000/user.png',
+          borderWidth: 4,
+          color: {
+            border: 'red',
+            background: '#ffffff'
+          }
+        });
+        
+        // Log that the practitioner has been placed in the web
+        logNarrative("I have placed myself as a practitioner in the web of compelling concerns.");
+        
+        // Tether the new practitioner node to each of the nearby nodes
+        tetherNodes.forEach(candidate => {
+          edges.add({
+            from: newNodeId,
+            to: candidate.id,
+            dashes: true,
+            color: { color: 'red' }
+          });
+          
+          // Retrieve the node label of the connection target
+          const targetNode = nodes.get(candidate.id);
+          const narrativeText = getNarrativeForNode(targetNode.label);
+          // Log a narrative entry for this connection
+          logNarrative(`Connecting with "${targetNode.label}": ${narrativeText}`);
+        });
+        
+        // Start the ripple animation for the new practitioner node
+        animateRipple(newNodeId);
+      });
+    });
+    
+    // Animate the "ripple" effect by periodically adjusting the node's border width
+    function animateRipple(nodeId) {
+      let increasing = true;
+      let borderWidth = 4;
+      setInterval(() => {
+        if (increasing) {
+          borderWidth += 1;
+          if (borderWidth >= 8) increasing = false;
+        } else {
+          borderWidth -= 1;
+          if (borderWidth <= 4) increasing = true;
+        }
+        nodes.update({ id: nodeId, borderWidth: borderWidth });
+      }, 200);
+    }
+    
+  </script>
+</body>
+</html>

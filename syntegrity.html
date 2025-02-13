@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Interactive Icosahedron - Topics and Participants</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+            z-index: 2;
+        }
+        #tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px;
+            border-radius: 3px;
+            font-family: Arial, sans-serif;
+            display: none;
+            pointer-events: none;
+            z-index: 3;
+            max-width: 300px;
+        }
+        /* Labels */
+        .element-label {
+            position: absolute;
+            color: #000000;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 12px;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            white-space: nowrap;
+            z-index: 1;
+            display: none; /* Hidden by default */
+        }
+        /* Toggle Button */
+        #toggleLabels {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 2;
+            padding: 10px 15px;
+            font-size: 14px;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #toggleLabels:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div id="info">
+        Hover over topics (green) or participants (red)<br>
+        Click and drag to rotate<br>
+        Scroll to zoom in/out
+    </div>
+    <button id="toggleLabels">Show Labels</button>
+    <div id="tooltip"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Your data object
+        const data = {
+    "Participants": [
+        {
+            "id": "P1",
+            "name": "Probabilistic World Modeler",
+            "roles": ["TeamMember"],
+            "connectedTopics": ["T1", "T4"]
+        },
+        {
+            "id": "P2",
+            "name": "Large Language Model (LLM)",
+            "roles": ["TeamMember"],
+            "connectedTopics": ["T2", "T5"]
+        },
+        {
+            "id": "P3",
+            "name": "Cognitive Scientist",
+            "roles": ["TeamMember", "Critic"],
+            "connectedTopics": ["T3", "T6"]
+        },
+        {
+            "id": "P4",
+            "name": "AI Researcher",
+            "roles": ["TeamMember", "Critic"],
+            "connectedTopics": ["T4", "T7"]
+        },
+        {
+            "id": "P5",
+            "name": "Inference Engine",
+            "roles": ["TeamMember"],
+            "connectedTopics": ["T1", "T7"]
+        },
+        {
+            "id": "P6",
+            "name": "Linguistic Meaning Parser",
+            "roles": ["TeamMember"],
+            "connectedTopics": ["T2", "T8"]
+        },
+        {
+            "id": "P7",
+            "name": "Domain Expert (Probabilistic Reasoning)",
+            "roles": ["TeamMember"],
+            "connectedTopics": ["T9", "T12"]
+        },
+        {
+            "id": "P8",
+            "name": "Domain Expert (Relational Reasoning)",
+            "roles": ["TeamMember"],
+            "connectedTopics": ["T10", "T1"]
+        },
+        {
+            "id": "P9",
+            "name": "Domain Expert (Visual/Physical Reasoning)",
+            "roles": ["TeamMember"],
+            "connectedTopics": ["T11", "T4"]
+        },
+        {
+            "id": "P10",
+            "name": "Domain Expert (Social Reasoning/Planning)",
+            "roles": ["TeamMember"],
+            "connectedTopics": ["T12", "T7"]
+        },
+        {
+            "id": "P11",
+            "name": "Symbolic Reasoning Advocate",
+            "roles": ["Critic"],
+            "connectedTopics": ["T7", "T10"]
+        },
+        {
+            "id": "P12",
+            "name": "Statistical Learning Proponent",
+            "roles": ["Critic"],
+            "connectedTopics": ["T5", "T2"]
+        },
+        {
+            "id": "P13",
+            "name": "Neuroscientist",
+            "roles": ["Observer"],
+            "connectedTopics": ["T3", "T6"]
+        },
+        {
+            "id": "P14",
+            "name": "Developmental Psychologist",
+            "roles": ["Observer"],
+            "connectedTopics": ["T12", "T3"]
+        },
+        {
+            "id": "P15",
+            "name": "Linguist",
+            "roles": ["Observer"],
+            "connectedTopics": ["T2", "T8"]
+        },
+        {
+            "id": "P16",
+            "name": "Philosopher of Language",
+            "roles": ["Observer"],
+            "connectedTopics": ["T8", "T6"]
+        },
+        {
+            "id": "P17",
+            "name": "Code Generation Module",
+            "roles": ["TeamMember"],
+            "connectedTopics": ["T2", "T4"]
+        },
+        {
+            "id": "P18",
+            "name": "Data Acquisition & Preparation Module",
+            "roles": ["TeamMember"],
+            "connectedTopics": ["T5", "T9"]
+        },
+        {
+            "id": "P19",
+            "name": "Evaluation & Interpretation Module",
+            "roles": ["TeamMember"],
+            "connectedTopics": ["T6", "T11"]
+        },
+        {
+            "id": "P20",
+            "name": "Knowledge Integration & Retrieval Module",
+            "roles": ["TeamMember"],
+            "connectedTopics": ["T1", "T10"]
+        },
+        {
+            "id": "P21",
+            "name": "Amortized Inference Researcher",
+            "roles": ["TeamMember", "Critic"],
+            "connectedTopics": ["T7", "T2"]
+        },
+        {
+            "id": "P22",
+            "name": "Probabilistic Programming Language Designer",
+            "roles": ["TeamMember", "Critic"],
+            "connectedTopics": ["T1", "T4"]
+        },
+        {
+            "id": "P23",
+            "name": "Rendering Engine Developer",
+            "roles": ["TeamMember"],
+            "connectedTopics": ["T11", "T4"]
+        },
+        {
+            "id": "P24",
+            "name": "Physics Simulation Engine Developer",
+            "roles": ["TeamMember"],
+            "connectedTopics": ["T11", "T4"]
+        },
+        {
+            "id": "P25",
+            "name": "Planning Algorithm Developer",
+            "roles": ["TeamMember"],
+            "connectedTopics": ["T12", "T7"]
+        },
+        {
+            "id": "P26",
+            "name": "User Interface & Visualization Designer",
+            "roles": ["TeamMember"],
+            "connectedTopics": ["T9", "T11"]
+        },
+        {
+            "id": "P27",
+            "name": "Resource Management & Optimization Specialist",
+            "roles": ["TeamMember"],
+            "connectedTopics": ["T4", "T7"]
+        },
+        {
+            "id": "P28",
+            "name": "Ethical Considerations Expert",
+            "roles": ["Critic"],
+            "connectedTopics": ["T6", "T12"]
+        },
+        {
+            "id": "P29",
+            "name": "Scalability & Robustness Engineer",
+            "roles": ["Critic"],
+            "connectedTopics": ["T5", "T7"]
+        },
+        {
+            "id": "P30",
+            "name": "User Community & Application Developer",
+            "roles": ["Observer"],
+            "connectedTopics": ["T9", "T12"]
+        }
+    ],
+    "Topics": [
+        {
+            "id": "T1",
+            "title": "Probabilistic World Models",
+            "teamMembers": ["P1", "P5", "P20", "P22"],
+            "critics": ["P11"],
+            "observers": ["P8"]
+        },
+        {
+            "id": "T2",
+            "title": "Large Language Models (LLMs)",
+            "teamMembers": ["P2", "P6", "P17"],
+            "critics": ["P12", "P21"],
+            "observers": ["P15"]
+        },
+        {
+            "id": "T3",
+            "title": "Cognitive Science",
+            "teamMembers": ["P3"],
+            "critics": ["P14"],
+            "observers": ["P13", "P14"]
+        },
+        {
+            "id": "T4",
+            "title": "Probabilistic Programming & Inference",
+            "teamMembers": ["P1", "P4", "P5", "P9", "P17", "P22", "P23", "P24", "P27"],
+            "critics": ["P11", "P21", "P29"],
+            "observers": []
+        },
+        {
+            "id": "T5",
+            "title": "Statistical Learning & Data-driven Approaches",
+            "teamMembers": ["P2", "P18"],
+            "critics": ["P12", "P29"],
+            "observers": ["P2"]
+        },
+        {
+            "id": "T6",
+            "title": "Evaluation & Interpretation of Results",
+            "teamMembers": ["P3", "P19"],
+            "critics": ["P28"],
+            "observers": ["P13", "P16", "P19"]
+        },
+        {
+            "id": "T7",
+            "title": "Scalability & Robustness of Reasoning",
+            "teamMembers": ["P4", "P5", "P10", "P21", "P25", "P27", "P29"],
+            "critics": ["P11", "P21", "P29"],
+            "observers": []
+        },
+        {
+            "id": "T8",
+            "title": "Linguistic Meaning & Semantic Representation",
+            "teamMembers": ["P6"],
+            "critics": [],
+            "observers": ["P15", "P16"]
+        },
+        {
+            "id": "T9",
+            "title": "Applications & Use Cases",
+            "teamMembers": ["P7", "P18", "P26"],
+            "critics": [],
+            "observers": ["P30"]
+        },
+        {
+            "id": "T10",
+            "title": "Relational Reasoning & Logic",
+            "teamMembers": ["P8"],
+            "critics": ["P11"],
+            "observers": ["P20"]
+        },
+        {
+            "id": "T11",
+            "title": "Visual & Physical Reasoning",
+            "teamMembers": ["P9", "P19", "P23", "P24", "P26"],
+            "critics": [],
+            "observers": []
+        },
+        {
+            "id": "T12",
+            "title": "Social Reasoning & Planning",
+            "teamMembers": ["P7", "P10", "P25"],
+            "critics": ["P28"],
+            "observers": ["P14", "P30"]
+        }
+    ],
+    "Faces": [
+        {
+            "id": "F1",
+            "title": "Integrating Relational Logic into Probabilistic World Models",
+            "topics": ["T1", "T4", "T10"],
+            "participants": ["P1", "P5", "P8"],
+            "discussionCluster": "Integrating relational logic into probabilistic world models for enhanced reasoning. Discussing challenges of representing complex relationships within probabilistic frameworks."
+        },
+        {
+            "id": "F2",
+            "title": "Applying Probabilistic Reasoning to Real-World Scenarios",
+            "topics": ["T1", "T4", "T9"],
+            "participants": ["P1", "P5", "P7"],
+            "discussionCluster": "Applying probabilistic reasoning to real-world scenarios. Evaluating model performance in diverse application domains."
+        },
+        {
+            "id": "F3",
+            "title": "Linguistic Structure in LLM-Based Meaning Extraction",
+            "topics": ["T2", "T5", "T8"],
+            "participants": ["P2", "P6", "P15"],
+            "discussionCluster": "Exploring the role of linguistic structure in LLM-based meaning extraction. Analyzing how LLMs capture semantic nuances and compositional aspects of language."
+        },
+        {
+            "id": "F4",
+            "title": "Scalability and Robustness in LLM Training",
+            "topics": ["T2", "T5", "T7"],
+            "participants": ["P2", "P18", "P29"],
+            "discussionCluster": "Addressing scalability and robustness challenges in LLM training and data-driven approaches. Debating the limits of statistical learning for achieving human-like reasoning."
+        },
+        {
+            "id": "F5",
+            "title": "Ethical Implications of AI Systems for Social Reasoning",
+            "topics": ["T3", "T6", "T12"],
+            "participants": ["P3", "P14", "P28"],
+            "discussionCluster": "Evaluating the ethical implications of AI systems for social reasoning and planning. Examining potential biases and unintended consequences of technology in social contexts."
+        },
+        {
+            "id": "F6",
+            "title": "Optimizing Visual and Physical Reasoning Engines",
+            "topics": ["T4", "T7", "T11"],
+            "participants": ["P4", "P23", "P27"],
+            "discussionCluster": "Optimizing the performance of visual and physical reasoning engines within the probabilistic framework. Discussing tradeoffs between accuracy, efficiency, and computational resources."
+        },
+        {
+            "id": "F7",
+            "title": "Scaling Planning Algorithms for Social Scenarios",
+            "topics": ["T4", "T7", "T12"],
+            "participants": ["P10", "P25", "P29"],
+            "discussionCluster": "Scaling planning algorithms for complex social scenarios. Evaluating the robustness of planning-based inferences against real-world uncertainties."
+        },
+        {
+            "id": "F8",
+            "title": "User Experiences in Integrating Reasoning Capabilities",
+            "topics": ["T9", "T11", "T12"],
+            "participants": ["P7", "P19", "P30"],
+            "discussionCluster": "Analyzing user experiences and application development challenges in integrating visual, physical, and social reasoning capabilities."
+        },
+        {
+            "id": "F9",
+            "title": "Translating Natural Language into Probabilistic Programs",
+            "topics": ["T1", "T2", "T4"],
+            "participants": ["P1", "P2", "P17"],
+            "discussionCluster": "Translating natural language into probabilistic programs using LLMs. Addressing challenges in generating code that accurately reflects linguistic meaning and intent."
+        },
+        {
+            "id": "F10",
+            "title": "Aligning Computational Framework with Cognitive Science",
+            "topics": ["T1", "T3", "T6"],
+            "participants": ["P1", "P3", "P13"],
+            "discussionCluster": "Aligning the computational framework with findings from cognitive science, particularly on probabilistic reasoning and world model construction."
+        },
+        {
+            "id": "F11",
+            "title": "LLM-Based Meaning Representations and Linguistic Theories",
+            "topics": ["T2", "T6", "T8"],
+            "participants": ["P2", "P6", "P16"],
+            "discussionCluster": "Relating LLM-based meaning representations to formal theories of linguistic meaning and semantic interpretation."
+        },
+        {
+            "id": "F12",
+            "title": "Integrating Physics Simulation Engines for Physical Reasoning",
+            "topics": ["T4", "T6", "T11"],
+            "participants": ["P9", "P19", "P24"],
+            "discussionCluster": "Integrating physics simulation engines with the probabilistic framework to enable physical reasoning from language. Evaluating the accuracy and limitations of simulated physics."
+        },
+        {
+            "id": "F13",
+            "title": "Data Acquisition and User Interface in Framework Applications",
+            "topics": ["T5", "T7", "T9"],
+            "participants": ["P18", "P26", "P30"],
+            "discussionCluster": "Exploring the role of data acquisition and user interface design in shaping applications of the framework. Discussing challenges in data bias and accessibility."
+        },
+        {
+            "id": "F14",
+            "title": "Enhancing Probabilistic Programming Language Expressiveness",
+            "topics": ["T1", "T7", "T22"],
+            "participants": ["P5", "P22", "P11"],
+            "discussionCluster": "Refining the probabilistic programming language to enhance expressiveness and reasoning capabilities. Addressing limitations and tradeoffs in language design choices."
+        },
+        {
+            "id": "F15",
+            "title": "Amortized Inference in Bridging Learning and Reasoning",
+            "topics": ["T2", "T7", "T21"],
+            "participants": ["P2", "P21", "P12"],
+            "discussionCluster": "Investigating the role of amortized inference in bridging statistical learning with symbolic reasoning. Exploring the boundaries between translation and inference in LLMs."
+        },
+        {
+            "id": "F16",
+            "title": "Framework's Approach to Meaning Construction and Linguistic Theories",
+            "topics": ["T3", "T8", "T6"],
+            "participants": ["P3", "P15", "P19"],
+            "discussionCluster": "Analyzing how the framework's approach to meaning construction aligns with linguistic theories and empirical findings on language processing in the brain."
+        },
+        {
+            "id": "F17",
+            "title": "Integrating Knowledge Retrieval into Probabilistic Framework",
+            "topics": ["T4", "T10", "T20"],
+            "participants": ["P8", "P20", "P11"],
+            "discussionCluster": "Integrating knowledge integration and retrieval mechanisms into the probabilistic framework. Leveraging symbolic reasoning to enhance knowledge representation and access."
+        },
+        {
+            "id": "F18",
+            "title": "Resource Management for Framework Scalability",
+            "topics": ["T7", "T9", "T27"],
+            "participants": ["P4", "P27", "P30"],
+            "discussionCluster": "Exploring resource management and optimization strategies to improve the scalability and efficiency of the framework's applications."
+        },
+        {
+            "id": "F19",
+            "title": "Ethical Considerations in Social Reasoning",
+            "topics": ["T6", "T12", "T28"],
+            "participants": ["P10", "P28", "P14"],
+            "discussionCluster": "Examining the ethical considerations of social reasoning and planning within the framework. Analyzing potential societal impacts and ensuring responsible development."
+        },
+        {
+            "id": "F20",
+            "title": "Integrating Planning Algorithms with Physical Reasoning",
+            "topics": ["T11", "T12", "T25"],
+            "participants": ["P9", "P25", "P7"],
+            "discussionCluster": "Integrating planning algorithms with visual and physical reasoning to model complex interactions between agents and their environment."
+        }
+    ]
+};
+        
+
+        // Scene setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(
+            75, window.innerWidth / window.innerHeight, 0.1, 1000
+        );
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(ambientLight);
+        const pointLight = new THREE.PointLight(0xffffff, 0.8);
+        pointLight.position.set(5, 5, 5);
+        scene.add(pointLight);
+
+        camera.position.z = 5;
+
+        // Create a group to hold all geometries
+        const icosahedronGroup = new THREE.Group();
+        scene.add(icosahedronGroup);
+
+        // Create icosahedron geometry
+        const geometry = new THREE.IcosahedronGeometry(1, 0);
+        const material = new THREE.MeshPhongMaterial({
+            color: 0x156289,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.3
+        });
+        const icosahedron = new THREE.Mesh(geometry, material);
+        icosahedronGroup.add(icosahedron);
+
+        // Interactive elements
+        const topics = []; // Vertices
+        const participants = []; // Edges
+
+        // Create topics (green spheres)
+        const positionAttribute = geometry.attributes.position;
+        const uniqueVertices = new Map();
+        let topicIndex = 0; // To map data.Topics to spheres
+
+        for (let i = 0; i < positionAttribute.count; i++) {
+            const vertex = new THREE.Vector3();
+            vertex.fromBufferAttribute(positionAttribute, i);
+            const key = `${vertex.x.toFixed(4)},${vertex.y.toFixed(4)},${vertex.z.toFixed(4)}`;
+
+            if (!uniqueVertices.has(key) && topicIndex < data.Topics.length) {
+                const sphereGeometry = new THREE.SphereGeometry(0.05, 8, 8);
+                const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+                const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+
+                sphere.position.copy(vertex);
+
+                // Map topic data to sphere
+                const topicData = data.Topics[topicIndex];
+                sphere.userData = {
+                    type: 'topic',
+                    id: topicData.id,
+                    name: topicData.title,
+                    teamMembers: topicData.teamMembers,
+                    critics: topicData.critics,
+                    observers: topicData.observers
+                };
+
+                // Create label (hidden by default)
+                const label = document.createElement('div');
+                label.className = 'element-label';
+                label.textContent = sphere.userData.name;
+                document.body.appendChild(label);
+                sphere.userData.label = label;
+
+                icosahedronGroup.add(sphere);
+                topics.push(sphere);
+                uniqueVertices.set(key, sphere);
+                topicIndex++;
+            }
+        }
+
+        // Define participants using EdgesGeometry
+        const edgesGeometry = new THREE.EdgesGeometry(geometry);
+        const edgesMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+        let participantIndex = 0; // To map data.Participants to edges
+
+        // Create interactive participants (edges)
+        const edgePositions = edgesGeometry.attributes.position.array;
+        for (let i = 0; i < edgePositions.length; i += 6) {
+            if (participantIndex >= data.Participants.length) break;
+
+            const startVertex = new THREE.Vector3(
+                edgePositions[i],
+                edgePositions[i + 1],
+                edgePositions[i + 2]
+            );
+            const endVertex = new THREE.Vector3(
+                edgePositions[i + 3],
+                edgePositions[i + 4],
+                edgePositions[i + 5]
+            );
+
+            const points = [startVertex, endVertex];
+            const edgeGeometry = new THREE.BufferGeometry().setFromPoints(points);
+            const edge = new THREE.Line(edgeGeometry, edgesMaterial.clone());
+
+            // Map participant data to edge
+            const participantData = data.Participants[participantIndex];
+            edge.userData = {
+                type: 'participant',
+                id: participantData.id,
+                name: participantData.name,
+                role: participantData.role,
+                description: participantData.description,
+                connectedTopics: participantData.connectedTopics
+            };
+            participantIndex++;
+
+            // Create label at midpoint (hidden by default)
+            const midpoint = new THREE.Vector3().addVectors(startVertex, endVertex).multiplyScalar(0.5);
+            const label = document.createElement('div');
+            label.className = 'element-label';
+            label.textContent = edge.userData.name;
+            document.body.appendChild(label);
+            edge.userData.label = label;
+            edge.userData.midpoint = midpoint;
+
+            icosahedronGroup.add(edge);
+            participants.push(edge);
+        }
+
+        // Interaction setup
+        const raycaster = new THREE.Raycaster();
+        raycaster.params.Line.threshold = 0.1; // Improve participant selection
+        const mouse = new THREE.Vector2();
+        const tooltip = document.getElementById('tooltip');
+        let selectedObject = null;
+
+        function onMouseMove(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects([...topics, ...participants], true);
+
+            if (intersects.length > 0) {
+                const object = intersects[0].object;
+
+                tooltip.style.display = 'block';
+                tooltip.style.left = event.clientX + 10 + 'px';
+                tooltip.style.top = event.clientY + 10 + 'px';
+
+                // Update tooltip content based on object type
+                if (object.userData.type === 'topic') {
+                    tooltip.innerHTML = `<strong>${object.userData.name}</strong><br>`;
+                    tooltip.innerHTML += `<em>Team Members:</em> ${object.userData.teamMembers.join(', ')}<br>`;
+                    tooltip.innerHTML += `<em>Critics:</em> ${object.userData.critics.join(', ')}<br>`;
+                    tooltip.innerHTML += `<em>Observers:</em> ${object.userData.observers.join(', ')}`;
+                } else if (object.userData.type === 'participant') {
+                    tooltip.innerHTML = `<strong>${object.userData.name}</strong><br>`;
+                    tooltip.innerHTML += `<em>Role:</em> ${object.userData.role}<br>`;
+                    tooltip.innerHTML += `<em>Description:</em> ${object.userData.description}<br>`;
+                    tooltip.innerHTML += `<em>Connected Topics:</em> ${object.userData.connectedTopics.join(', ')}`;
+                }
+
+                if (object !== selectedObject) {
+                    if (object.userData.type === 'topic') {
+                        object.material.color.setHex(0xffff00);
+                    } else {
+                        object.material.color.setHex(0xffa500);
+                    }
+                }
+
+                // Show label
+                if (object.userData.label) {
+                    object.userData.label.style.display = 'block';
+                }
+
+            } else {
+                tooltip.style.display = 'none';
+                resetHighlights();
+            }
+        }
+
+        function onMouseOut() {
+            tooltip.style.display = 'none';
+            resetHighlights();
+        }
+
+        function onClick(event) {
+            // Optional: Add click functionality if needed
+        }
+
+        function resetHighlights() {
+            topics.forEach(topic => {
+                if (topic !== selectedObject) {
+                    topic.material.color.setHex(0x00ff00);
+                }
+                // Hide label
+                if (topic.userData.label) {
+                    topic.userData.label.style.display = labelsVisible ? 'block' : 'none';
+                }
+            });
+            participants.forEach(participant => {
+                if (participant !== selectedObject) {
+                    participant.material.color.setHex(0xff0000);
+                }
+                // Hide label
+                if (participant.userData.label) {
+                    participant.userData.label.style.display = labelsVisible ? 'block' : 'none';
+                }
+            });
+        }
+
+        // Orbit controls with improved performance
+        let isDragging = false;
+        let previousMousePosition = {
+            x: 0,
+            y: 0
+        };
+
+        document.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            previousMousePosition = {
+                x: e.clientX,
+                y: e.clientY
+            };
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const deltaMove = {
+                    x: e.clientX - previousMousePosition.x,
+                    y: e.clientY - previousMousePosition.y
+                };
+
+                const rotationY = deltaMove.x * 0.01;
+                const rotationX = deltaMove.y * 0.01;
+
+                icosahedronGroup.rotation.y += rotationY;
+                icosahedronGroup.rotation.x += rotationX;
+
+                previousMousePosition = {
+                    x: e.clientX,
+                    y: e.clientY
+                };
+            }
+
+            // Update labels
+            updateLabels();
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        // Zoom functionality
+        document.addEventListener('wheel', (event) => {
+            event.preventDefault();
+            const zoomAmount = event.deltaY * 0.005;
+            camera.position.z += zoomAmount;
+        });
+
+        // Update label positions
+        function updateLabels() {
+            topics.forEach(topic => {
+                const vector = topic.position.clone();
+                vector.applyMatrix4(icosahedronGroup.matrixWorld);
+                vector.project(camera);
+                const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+                const y = (-vector.y * 0.5 + 0.5) * window.innerHeight;
+                topic.userData.label.style.left = `${x}px`;
+                topic.userData.label.style.top = `${y}px`;
+            });
+
+            participants.forEach(participant => {
+                const vector = participant.userData.midpoint.clone();
+                vector.applyMatrix4(icosahedronGroup.matrixWorld);
+                vector.project(camera);
+                const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+                const y = (-vector.y * 0.5 + 0.5) * window.innerHeight;
+                participant.userData.label.style.left = `${x}px`;
+                participant.userData.label.style.top = `${y}px`;
+            });
+        }
+
+        // Label toggle functionality
+        let labelsVisible = false;
+        const toggleButton = document.getElementById('toggleLabels');
+
+        toggleButton.addEventListener('click', () => {
+            labelsVisible = !labelsVisible;
+            toggleButton.textContent = labelsVisible ? 'Hide Labels' : 'Show Labels';
+
+            topics.forEach(topic => {
+                topic.userData.label.style.display = labelsVisible ? 'block' : 'none';
+            });
+
+            participants.forEach(participant => {
+                participant.userData.label.style.display = labelsVisible ? 'block' : 'none';
+            });
+        });
+
+        // Animation
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+            updateLabels();
+        }
+
+        // Event listeners
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseout', onMouseOut);
+        window.addEventListener('click', onClick);
+        window.addEventListener('resize', onWindowResize, false);
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        animate();
+    </script>
+</body>
+</html>

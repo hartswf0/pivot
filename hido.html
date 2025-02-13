@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IcoSo Structures Editor</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" />
+  <style>
+    :root {
+      --color-background: #f7f7f7;
+      --color-primary: #1C1C1C;
+      --color-secondary: #4E4E4E;
+      --color-accent: #007BFF;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: var(--color-background);
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .structure-selector, .editor-section {
+      margin-bottom: 20px;
+      padding: 10px;
+      background: #e0e0e0;
+      border-radius: 4px;
+    }
+    .structure-selector select {
+      width: 100%;
+      padding: 8px;
+      font-size: 16px;
+    }
+    /* Draggable person icon styles */
+    #draggableContainer {
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+    }
+    .draggable-person {
+      width: 50px;
+      height: 50px;
+      cursor: grab;
+      display: inline-block;
+      margin-right: 10px;
+    }
+    .draggable-person img {
+      width: 100%;
+      height: 100%;
+    }
+    .visualization {
+      height: 600px;
+      border: 1px solid #ddd;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    .cluster-legend {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      margin-top: 20px;
+      padding: 10px;
+      background: #f5f5f5;
+      border-radius: 4px;
+    }
+    .cluster-item {
+      padding: 5px;
+      background: white;
+      display: flex;
+      align-items: center;
+    }
+    .cluster-color {
+      width: 16px;
+      height: 16px;
+      margin-right: 8px;
+      border: 1px solid #ccc;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .stat-box {
+      background: var(--color-primary);
+      color: white;
+      padding: 15px;
+      border-radius: 4px;
+      text-align: center;
+    }
+    /* Editor panel styles */
+    .editor-section h3 {
+      margin-top: 0;
+    }
+    .editor-section textarea, .editor-section input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 8px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    .editor-section input[type="file"] {
+      margin-bottom: 8px;
+    }
+    .editor-section button {
+      padding: 8px 12px;
+      margin-right: 10px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Structure selection -->
+    <div class="structure-selector">
+      <select id="structureSelect" onchange="loadStructure()">
+        <option value="0">Hair Braiding Practices & Cultural Dynamics</option>
+        <option value="1">Game Dynamics & Player Experiences</option>
+      </select>
+    </div>
+    
+    <!-- Draggable person icon -->
+    <div id="draggableContainer">
+      <div id="personIcon" class="draggable-person" draggable="true">
+        <img src="https://img.icons8.com/ios-filled/50/000000/user.png" alt="Drag me">
+      </div>
+      <div>Drag this person icon into the matrix</div>
+    </div>
+    
+    <!-- Network visualization container -->
+    <div id="visualization" class="visualization"></div>
+    
+    <!-- Cluster legend -->
+    <div id="clusterLegend" class="cluster-legend"></div>
+    
+    <!-- Stats display -->
+    <div class="stats">
+      <div class="stat-box">
+        <h4>Nodes</h4>
+        <div id="nodeCount">0</div>
+      </div>
+      <div class="stat-box">
+        <h4>Connections</h4>
+        <div id="edgeCount">0</div>
+      </div>
+      <div class="stat-box">
+        <h4>Clusters</h4>
+        <div id="clusterCount">0</div>
+      </div>
+    </div>
+    
+    <!-- Editor Panel -->
+    <div class="editor-section">
+      <h3>Editor Panel</h3>
+      <p><strong>Upload JSON File:</strong></p>
+      <input type="file" id="jsonFileInput" accept=".json">
+      <button onclick="uploadJSONFile()">Load File</button>
+      
+      <p><strong>Edit JSON Data:</strong></p>
+      <textarea id="jsonEditor" rows="8" placeholder="Paste JSON here..."></textarea>
+      <button onclick="loadJSONFromEditor()">Load JSON from Editor</button>
+      
+      <hr />
+      <p><strong>Add Node:</strong></p>
+      <input type="text" id="newNodeLabel" placeholder="Node Label">
+      <button onclick="addNode()">Add Node</button>
+      
+      <p><strong>Add Edge:</strong></p>
+      <input type="text" id="newEdgeFrom" placeholder="From Node Label">
+      <input type="text" id="newEdgeTo" placeholder="To Node Label">
+      <input type="text" id="newEdgeRel" placeholder="Relationship">
+      <button onclick="addEdge()">Add Edge</button>
+      
+      <p><strong>Add Cluster:</strong></p>
+      <input type="text" id="newClusterName" placeholder="Cluster Name">
+      <input type="text" id="newClusterElements" placeholder="Comma-separated node labels">
+      <button onclick="addCluster()">Add Cluster</button>
+    </div>
+  </div>
+  
+  <script>
+    // Global variables for network, nodes, and edges
+    let network = null;
+    let nodes = null;
+    let edges = null;
+    
+    // Base JSON data
+    let structures = {
+      "icoso_structures": [
+        {
+          "icoso_structure": "Hair Braiding Practices & Cultural Dynamics",
+          "nodes": [
+            "Hair Braiding Techniques",
+            "Rat Tail Comb",
+            "Knotless Braids",
+            "Box Braids",
+            "Weaves",
+            "African Braiding Salon",
+            "Cultural Appropriation",
+            "Professional Standards",
+            "Unprofessional Practices",
+            "Fair Compensation",
+            "Time-Intensive Labor",
+            "Customer Satisfaction",
+            "Thinning Edges Through Tension",
+            "Hair Health Concerns",
+            "Hierarchy in Practice",
+            "Social Media Trends",
+            "Community Communication",
+            "Stylist Autonomy",
+            "Pricing Models",
+            "Innovation in Hairstyles"
+          ],
+          "edges": [
+            {"from": "Hair Braiding Techniques", "to": "Rat Tail Comb", "relationship": "utilizes"},
+            {"from": "Knotless Braids", "to": "Thinning Edges Through Tension", "relationship": "reduces"},
+            {"from": "Box Braids", "to": "Hair Health Concerns", "relationship": "can cause"},
+            {"from": "Weaves", "to": "Pricing Models", "relationship": "affects"},
+            {"from": "African Braiding Salon", "to": "Professional Standards", "relationship": "upholds"},
+            {"from": "Cultural Appropriation", "to": "Public Perception", "relationship": "influences"},
+            {"from": "Fair Compensation", "to": "Time-Intensive Labor", "relationship": "impacted by"},
+            {"from": "Customer Satisfaction", "to": "Hair Health Concerns", "relationship": "depends on"},
+            {"from": "Social Media Trends", "to": "Innovation in Hairstyles", "relationship": "drives"},
+            {"from": "Hierarchy in Practice", "to": "Stylist Autonomy", "relationship": "limits"},
+            {"from": "Unprofessional Practices", "to": "Customer Satisfaction", "relationship": "undermines"},
+            {"from": "Community Communication", "to": "Professional Standards", "relationship": "reinforces"},
+            {"from": "Pricing Models", "to": "Fair Compensation", "relationship": "determines"},
+            {"from": "Thinning Edges Through Tension", "to": "Hair Health Concerns", "relationship": "linked to"},
+            {"from": "Social Media Trends", "to": "Cultural Appropriation", "relationship": "accelerates"},
+            {"from": "Rat Tail Comb", "to": "Box Braids", "relationship": "used in"},
+            {"from": "Innovation in Hairstyles", "to": "Professional Standards", "relationship": "challenges"},
+            {"from": "Stylist Autonomy", "to": "Fair Compensation", "relationship": "affected by"},
+            {"from": "African Braiding Salon", "to": "Community Communication", "relationship": "hosts"},
+            {"from": "Cultural Appropriation", "to": "Social Media Trends", "relationship": "exacerbated by"}
+          ],
+          "clusters": [
+            {
+              "name": "Technical Skills",
+              "elements": ["Hair Braiding Techniques", "Rat Tail Comb", "Box Braids"]
+            },
+            {
+              "name": "Cultural Dynamics",
+              "elements": ["African Braiding Salon", "Cultural Appropriation", "Social Media Trends"]
+            },
+            {
+              "name": "Economic Factors",
+              "elements": ["Fair Compensation", "Pricing Models", "Time-Intensive Labor"]
+            },
+            {
+              "name": "Hair Health Concerns",
+              "elements": ["Thinning Edges Through Tension", "Hair Health Concerns", "Knotless Braids"]
+            },
+            {
+              "name": "Professional Standards",
+              "elements": ["Professional Standards", "Unprofessional Practices", "Innovation in Hairstyles"]
+            },
+            {
+              "name": "Community Engagement",
+              "elements": ["Community Communication", "Stylist Autonomy", "Hierarchy in Practice"]
+            }
+          ]
+        },
+        {
+          "icoso_structure": "Game Dynamics & Player Experiences",
+          "nodes": [
+            "Game Mechanics",
+            "Grid-Based Strategy",
+            "Avatar Representation",
+            "Mechs and Vehicles",
+            "Battle Mech Record Sheets",
+            "Mathematical Challenges",
+            "Inebriation During Play",
+            "Escapism",
+            "Narrative Construction",
+            "Player Identity",
+            "Strategic Decision-Making",
+            "Complexity in Gameplay",
+            "Game Duration Perception",
+            "Feedback Loops in Game Design",
+            "Ownership Markers (Spray-Painted Figures)",
+            "Emotional Engagement (Joy, Frustration)",
+            "Player Autonomy",
+            "Systemic Balance in Games",
+            "Social Interaction in Multiplayer Settings",
+            "Ritualistic Play Practices"
+          ],
+          "edges": [
+            {"from": "Game Mechanics", "to": "Grid-Based Strategy", "relationship": "define"},
+            {"from": "Avatar Representation", "to": "Player Identity", "relationship": "shapes"},
+            {"from": "Mechs and Vehicles", "to": "Narrative Construction", "relationship": "enhance"},
+            {"from": "Battle Mech Record Sheets", "to": "Complexity in Gameplay", "relationship": "track"},
+            {"from": "Mathematical Challenges", "to": "Inebriation During Play", "relationship": "complicated by"},
+            {"from": "Escapism", "to": "Narrative Construction", "relationship": "emerges from"},
+            {"from": "Strategic Decision-Making", "to": "Game Mechanics", "relationship": "driven by"},
+            {"from": "Game Duration Perception", "to": "Complexity in Gameplay", "relationship": "affected by"},
+            {"from": "Ownership Markers (Spray-Painted Figures)", "to": "Player Autonomy", "relationship": "reinforce"},
+            {"from": "Feedback Loops in Game Design", "to": "Systemic Balance in Games", "relationship": "ensure"},
+            {"from": "Emotional Engagement (Joy, Frustration)", "to": "Escapism", "relationship": "fosters"},
+            {"from": "Social Interaction in Multiplayer Settings", "to": "Ritualistic Play Practices", "relationship": "encourages"},
+            {"from": "Inebriation During Play", "to": "Ritualistic Play Practices", "relationship": "integrates into"},
+            {"from": "Player Identity", "to": "Ownership Markers (Spray-Painted Figures)", "relationship": "expressed through"},
+            {"from": "Systemic Balance in Games", "to": "Strategic Decision-Making", "relationship": "supports"},
+            {"from": "Emotional Engagement (Joy, Frustration)", "to": "Game Duration Perception", "relationship": "modifies"},
+            {"from": "Narrative Construction", "to": "Game Mechanics", "relationship": "influences"},
+            {"from": "Player Autonomy", "to": "Strategic Decision-Making", "relationship": "enhances"},
+            {"from": "Complexity in Gameplay", "to": "Feedback Loops in Game Design", "relationship": "requires"},
+            {"from": "Social Interaction in Multiplayer Settings", "to": "Player Identity", "relationship": "shapes"}
+          ],
+          "clusters": [
+            {
+              "name": "Game Mechanics & Strategy",
+              "elements": ["Game Mechanics", "Grid-Based Strategy", "Strategic Decision-Making"]
+            },
+            {
+              "name": "Player Identity & Representation",
+              "elements": ["Avatar Representation", "Player Identity", "Ownership Markers (Spray-Painted Figures)"]
+            },
+            {
+              "name": "Narrative & Escapism",
+              "elements": ["Narrative Construction", "Escapism", "Emotional Engagement (Joy, Frustration)"]
+            },
+            {
+              "name": "Systemic Design",
+              "elements": ["Feedback Loops in Game Design", "Systemic Balance in Games", "Complexity in Gameplay"]
+            },
+            {
+              "name": "Temporal Dynamics",
+              "elements": ["Game Duration Perception", "Inebriation During Play", "Ritualistic Play Practices"]
+            },
+            {
+              "name": "Social Interaction",
+              "elements": ["Social Interaction in Multiplayer Settings", "Player Autonomy", "Ritualistic Play Practices"]
+            }
+          ]
+        }
+      ]
+    };
+    
+    // Load the selected structure and create the network
+    function loadStructure() {
+      const index = document.getElementById('structureSelect').value;
+      const structure = structures.icoso_structures[index];
+      
+      // Create nodes and store them globally so we can add new ones later
+      nodes = new vis.DataSet(
+        structure.nodes.map((node, id) => ({
+          id,
+          label: node,
+          group: findClusterForNode(node, structure.clusters)
+        }))
+      );
+      
+      // Create edges dataset
+      edges = new vis.DataSet(
+        structure.edges.map((edge, id) => ({
+          id,
+          from: structure.nodes.indexOf(edge.from),
+          to: structure.nodes.indexOf(edge.to),
+          label: edge.relationship
+        }))
+      );
+      
+      // Network configuration
+      const options = {
+        nodes: {
+          shape: 'dot',
+          size: 20,
+          font: { size: 14 }
+        },
+        edges: {
+          font: { size: 12, align: 'middle' },
+          arrows: 'to'
+        },
+        physics: {
+          barnesHut: {
+            gravitationalConstant: -2000,
+            springLength: 200
+          }
+        },
+        groups: createClusterColors(structure.clusters)
+      };
+      
+      // Create the network inside the "visualization" container
+      const container = document.getElementById('visualization');
+      network = new vis.Network(container, { nodes, edges }, options);
+      
+      // Update statistics
+      document.getElementById('nodeCount').textContent = nodes.length;
+      document.getElementById('edgeCount').textContent = edges.length;
+      document.getElementById('clusterCount').textContent = structure.clusters.length;
+      
+      // Update cluster legend with color swatches
+      updateClusterLegend(structure.clusters);
+    }
+    
+    // Return the cluster name for a given node
+    function findClusterForNode(node, clusters) {
+      for (const cluster of clusters) {
+        if (cluster.elements.includes(node)) {
+          return cluster.name;
+        }
+      }
+      return null;
+    }
+    
+    // Assign colors to clusters and return a groups object for vis.js
+    function createClusterColors(clusters) {
+      const colors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33'];
+      const groups = {};
+      clusters.forEach((cluster, i) => {
+        groups[cluster.name] = {
+          color: { background: colors[i % colors.length] }
+        };
+      });
+      return groups;
+    }
+    
+    // Update the legend with color swatches
+    function updateClusterLegend(clusters) {
+      const colors = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33'];
+      const legend = document.getElementById('clusterLegend');
+      legend.innerHTML = clusters
+        .map((cluster, index) => `
+          <div class="cluster-item">
+            <span class="cluster-color" style="background: ${colors[index % colors.length]};"></span>
+            <div>
+              <strong>${cluster.name}</strong><br/>
+              <small>${cluster.elements.length} elements</small>
+            </div>
+          </div>
+        `)
+        .join('');
+    }
+    
+    // ---------- DRAG & DROP PERSON ICON FEATURE ----------
+    document.addEventListener('DOMContentLoaded', () => {
+      loadStructure();
+      
+      const vizContainer = document.getElementById('visualization');
+      
+      // Allow drop on the visualization container
+      vizContainer.addEventListener('dragover', (event) => {
+        event.preventDefault();
+      });
+      
+      // Handle drop event: add a new person node and tether it
+      vizContainer.addEventListener('drop', (event) => {
+        event.preventDefault();
+        const rect = vizContainer.getBoundingClientRect();
+        // Calculate drop coordinates relative to the container
+        const dropX = event.clientX - rect.left;
+        const dropY = event.clientY - rect.top;
+        // Convert DOM coordinates to network (canvas) coordinates
+        const canvasPos = network.DOMtoCanvas({ x: dropX, y: dropY });
+        
+        // Find nearby nodes (within a threshold) to tether to.
+        const positions = network.getPositions();
+        const threshold = 150;
+        let candidates = [];
+        for (let nodeId in positions) {
+          const pos = positions[nodeId];
+          const dx = canvasPos.x - pos.x;
+          const dy = canvasPos.y - pos.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if(distance <= threshold) {
+            candidates.push({ id: nodeId, distance });
+          }
+        }
+        candidates.sort((a, b) => a.distance - b.distance);
+        let tetherNodes = candidates.slice(0, 5);
+        if(tetherNodes.length === 0) {
+          // If no nodes are within the threshold, attach to the nearest node.
+          let allCandidates = [];
+          for (let nodeId in positions) {
+            const pos = positions[nodeId];
+            const dx = canvasPos.x - pos.x;
+            const dy = canvasPos.y - pos.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            allCandidates.push({ id: nodeId, distance });
+          }
+          allCandidates.sort((a, b) => a.distance - b.distance);
+          tetherNodes = [allCandidates[0]];
+        }
+        
+        // Create a new person node at the drop location.
+        const newNodeId = 'person_' + Date.now();
+        nodes.add({
+          id: newNodeId,
+          label: '',
+          x: canvasPos.x,
+          y: canvasPos.y,
+          shape: 'circularImage',
+          image: 'https://img.icons8.com/ios-filled/50/000000/user.png',
+          borderWidth: 4,
+          color: {
+            border: 'red',
+            background: '#ffffff'
+          }
+        });
+        
+        // Tether the new person node to each of the nearby nodes
+        tetherNodes.forEach(candidate => {
+          edges.add({
+            from: newNodeId,
+            to: candidate.id,
+            dashes: true,
+            color: { color: 'red' }
+          });
+        });
+        
+        // Start the ripple animation for the new person node
+        animateRipple(newNodeId);
+      });
+    });
+    
+    // Animate the "ripple" effect by periodically adjusting the node's border width
+    function animateRipple(nodeId) {
+      let increasing = true;
+      let borderWidth = 4;
+      setInterval(() => {
+        if (increasing) {
+          borderWidth += 1;
+          if (borderWidth >= 8) increasing = false;
+        } else {
+          borderWidth -= 1;
+          if (borderWidth <= 4) increasing = true;
+        }
+        nodes.update({ id: nodeId, borderWidth: borderWidth });
+      }, 200);
+    }
+    
+    // --------------- EDITOR FUNCTIONS ---------------
+    // Load JSON from the text area editor
+    function loadJSONFromEditor() {
+      try {
+        const newJson = JSON.parse(document.getElementById('jsonEditor').value);
+        structures = newJson;
+        loadStructure();
+        alert("JSON loaded successfully.");
+      } catch (err) {
+        alert("Error parsing JSON: " + err.message);
+      }
+    }
+    
+    // Upload JSON file
+    function uploadJSONFile() {
+      const fileInput = document.getElementById('jsonFileInput');
+      if (fileInput.files.length === 0) {
+        alert("Please select a JSON file.");
+        return;
+      }
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          structures = JSON.parse(e.target.result);
+          document.getElementById('jsonEditor').value = JSON.stringify(structures, null, 2);
+          loadStructure();
+          alert("JSON file loaded successfully.");
+        } catch (err) {
+          alert("Error parsing JSON file: " + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+    
+    // Add a new node to the current structure and network
+    function addNode() {
+      const label = document.getElementById('newNodeLabel').value.trim();
+      if (!label) {
+        alert("Please enter a node label.");
+        return;
+      }
+      // Add to current structure in our JSON model
+      const idx = document.getElementById('structureSelect').value;
+      structures.icoso_structures[idx].nodes.push(label);
+      // Reload structure to update network
+      loadStructure();
+      document.getElementById('newNodeLabel').value = "";
+    }
+    
+    // Add a new edge to the current structure and network
+    function addEdge() {
+      const fromLabel = document.getElementById('newEdgeFrom').value.trim();
+      const toLabel = document.getElementById('newEdgeTo').value.trim();
+      const relationship = document.getElementById('newEdgeRel').value.trim() || "linked";
+      if (!fromLabel || !toLabel) {
+        alert("Please enter both 'from' and 'to' node labels.");
+        return;
+      }
+      const idx = document.getElementById('structureSelect').value;
+      structures.icoso_structures[idx].edges.push({
+        from: fromLabel,
+        to: toLabel,
+        relationship: relationship
+      });
+      loadStructure();
+      document.getElementById('newEdgeFrom').value = "";
+      document.getElementById('newEdgeTo').value = "";
+      document.getElementById('newEdgeRel').value = "";
+    }
+    
+    // Add a new cluster to the current structure and network
+    function addCluster() {
+      const clusterName = document.getElementById('newClusterName').value.trim();
+      const elementsInput = document.getElementById('newClusterElements').value.trim();
+      if (!clusterName || !elementsInput) {
+        alert("Please enter a cluster name and a comma-separated list of node labels.");
+        return;
+      }
+      const elements = elementsInput.split(",").map(e => e.trim()).filter(e => e);
+      const idx = document.getElementById('structureSelect').value;
+      structures.icoso_structures[idx].clusters.push({
+        name: clusterName,
+        elements: elements
+      });
+      loadStructure();
+      document.getElementById('newClusterName').value = "";
+      document.getElementById('newClusterElements').value = "";
+    }
+    
+  </script>
+</body>
+</html>

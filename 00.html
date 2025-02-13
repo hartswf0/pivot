@@ -1,0 +1,85 @@
+import { useState } from 'react';
+import { ChevronRight, Phone, Book, Search } from 'lucide-react';
+
+const HyperClayPreview = () => {
+  const [selectedNumber, setSelectedNumber] = useState(null);
+
+  const previewContent = {
+    '1': { title: 'Design Thinking', preview: 'Canvas: Pivoting Observations into Design...' },
+    '2': { title: 'Force Sets', preview: 'Dynamics in Craft and Design...' },
+    '3': { title: 'Sound Systems', preview: 'Boundary Object Analysis...' },
+    '4': { title: 'Network Theory', preview: 'Connecting Ideas...' },
+    '5': { title: 'Cybernetics', preview: 'System Controls...' },
+    '6': { title: 'Semiotics', preview: 'Sign Systems...' },
+    '7': { title: 'Media Studies', preview: 'Communication Patterns...' },
+    '8': { title: 'Cultural Theory', preview: 'Social Frameworks...' },
+    '9': { title: 'Practice Theory', preview: 'Applied Methods...' },
+  };
+
+  const NumberPad = () => (
+    <div className="grid grid-cols-3 gap-2 p-4">
+      {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+        <button
+          key={num}
+          onClick={() => setSelectedNumber(num)}
+          className={`p-4 rounded-lg flex flex-col items-center justify-center transition-colors
+            ${selectedNumber === num ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+        >
+          <span className="text-2xl font-bold">{num}</span>
+          <span className="text-xs mt-1">{previewContent[num].title}</span>
+        </button>
+      ))}
+    </div>
+  );
+
+  const Preview = () => (
+    <div className="p-4 bg-gray-50 rounded-lg">
+      {selectedNumber ? (
+        <>
+          <h2 className="text-xl font-bold mb-2">
+            {previewContent[selectedNumber].title}
+          </h2>
+          <p className="text-gray-600">
+            {previewContent[selectedNumber].preview}
+          </p>
+          <button className="mt-4 flex items-center text-blue-600 hover:text-blue-800">
+            Open full document <ChevronRight className="w-4 h-4 ml-1" />
+          </button>
+        </>
+      ) : (
+        <div className="text-center text-gray-500">
+          Select a number to preview content
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="max-w-4xl mx-auto p-4">
+      <header className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">HyperClay ZettelKasten</h1>
+        <div className="flex gap-2">
+          <button className="p-2 rounded-full hover:bg-gray-100">
+            <Search className="w-5 h-5" />
+          </button>
+          <button className="p-2 rounded-full hover:bg-gray-100">
+            <Phone className="w-5 h-5" />
+          </button>
+          <button className="p-2 rounded-full hover:bg-gray-100">
+            <Book className="w-5 h-5" />
+          </button>
+        </div>
+      </header>
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="bg-white rounded-xl shadow-lg">
+          <NumberPad />
+        </div>
+        <div className="bg-white rounded-xl shadow-lg">
+          <Preview />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default HyperClayPreview;
